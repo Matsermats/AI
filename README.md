@@ -34,3 +34,20 @@ python src/predict.py model.pth image.jpg dog cat other
 ```
 
 This prints the predicted class.
+
+## GUI
+
+After training a model, you can launch a small Tkinter GUI to classify images
+interactively. By default the GUI looks for a file called `model.pth` in the
+current directory and assumes three classes: `dog`, `cat` and `other`.
+
+```
+python src/gui.py
+```
+
+Use `--model` to specify a different model file and `--class-names` to specify
+the class labels if they differ from the defaults. For example:
+
+```
+python src/gui.py --model my_model.pth --class-names dog cat
+```
