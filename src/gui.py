@@ -2,12 +2,12 @@ import tkinter as tk
 from tkinter import filedialog, messagebox
 from PIL import Image, ImageTk
 import os
+import sys
 import torch
 from torchvision import transforms, models
 
 
 def load_model(model_path, num_classes):
-    # Avoid downloading pretrained weights which requires internet access
     model = models.mobilenet_v2(weights=None)
     model.classifier[1] = torch.nn.Linear(model.last_channel, num_classes)
     model.load_state_dict(torch.load(model_path, map_location="cpu"))
@@ -28,69 +28,68 @@ def preprocess_image(image_path):
 class ImageClassifierGUI(tk.Tk):
     def __init__(self, model_path, class_names):
         super().__init__()
-        self.title("Image Classifier")
-        self.configure(padx=20, pady=20)
+        self.title("🐶🐱 AI Beeldclassificatie")
+        self.geometry("500x600")
+        self.configure(bg="#eeeeee")
+
         self.model = load_model(model_path, len(class_names))
         self.class_names = class_names
 
-        self.image_label = tk.Label(self)
-        self.image_label.pack(pady=10)
+        # === Frame voor afbeelding ===
+        self.image_frame = tk.Frame(self, bg="#ffffff", width=300, height=250, relief="groove", borderwidth=2)
+        self.image_frame.pack(pady=20)
+        self.image_label = tk.Label(self.image_frame, bg="#ffffff")
+        self.image_label.pack(padx=10, pady=10)
+
+        # === Frame voor voorspelling ===
+        self.prediction_frame = tk.Frame(self, bg="#f0f0f0", relief="ridge", borderwidth=2)
+        self.prediction_frame.pack(pady=10, fill="x", padx=30)
 
         self.prediction_var = tk.StringVar()
-        self.prediction_var.set("Select an image to classify")
-        tk.Label(self, textvariable=self.prediction_var, font=("Helvetica", 14)).pack(pady=10)
+        self.prediction_var.set("🖼️ Selecteer een afbeelding om te classificeren")
+        self.prediction_label = tk.Label(self.prediction_frame, textvariable=self.prediction_var,
+                                         font=("Helvetica", 16, "bold"), fg="#007acc", bg="#f0f0f0", wraplength=400)
+        self.prediction_label.pack(pady=15)
 
-        tk.Button(self, text="Open Image", command=self.open_image).pack()
+        # === Knop om afbeelding te openen ===
+        self.open_button = tk.Button(self, text="📂 Open afbeelding", font=("Helvetica", 13),
+                                     command=self.open_image, bg="#4CAF50", fg="white", padx=10, pady=5)
+        self.open_button.pack(pady=15)
 
     def open_image(self):
-        path = filedialog.askopenfilename(filetypes=[("Image files", "*.jpg *.jpeg *.png *.bmp")])
+        path = filedialog.askopenfilename(filetypes=[("Afbeeldingen", "*.jpg *.jpeg *.png *.bmp")])
         if not path:
             return
         try:
             img = Image.open(path)
+            img_resized = img.resize((224, 224))
+            photo = ImageTk.PhotoImage(img_resized)
+            self.image_label.configure(image=photo)
+            self.image_label.image = photo  # referentie bewaren
+            self.classify_image(path)
         except Exception as e:
-            messagebox.showerror("Error", f"Failed to open image: {e}")
-            return
-        img_resized = img.resize((224, 224))
-        photo = ImageTk.PhotoImage(img_resized)
-        self.image_label.configure(image=photo)
-        self.image_label.image = photo
-        self.classify_image(path)
+            messagebox.showerror("Fout", f"Afbeelding kan niet geopend worden:\n{e}")
 
     def classify_image(self, path):
-        image = preprocess_image(path)
-        with torch.no_grad():
-            outputs = self.model(image)
-            pred = outputs.argmax(dim=1).item()
-        self.prediction_var.set(f"Prediction: {self.class_names[pred]}")
-
-
-def main():
-    import argparse
-    parser = argparse.ArgumentParser(
-        description="Launch simple GUI for image classification"
-    )
-    parser.add_argument(
-        "--model",
-        default="model.pth",
-        help="Path to trained model (default: model.pth)",
-    )
-    parser.add_argument(
-        "--class-names",
-        nargs="+",
-        default=["dog", "cat", "other"],
-        help="List of class names in order",
-    )
-    args = parser.parse_args()
-
-    if not (os.environ.get("DISPLAY") or os.environ.get("WAYLAND_DISPLAY")):
-        print("Error: No display found. The GUI requires a graphical environment.")
-        return
-
-    gui = ImageClassifierGUI(args.model, args.class_names)
-    gui.mainloop()
+        try:
+            image = preprocess_image(path)
+            with torch.no_grad():
+                outputs = self.model(image)
+                pred = outputs.argmax(dim=1).item()
+            label = self.class_names[pred].capitalize()
+            self.prediction_var.set(f"🔎 Voorspelling: {label}")
+            print(f"[DEBUG] Voorspelling: {label}")
+        except Exception as e:
+            messagebox.showerror("Fout", f"Classificatie mislukt:\n{e}")
 
 
 if __name__ == "__main__":
-    main()
+    model_path = "src/model.pth"
+    class_names = ["cat", "dog"]  # Zorg dat dit overeenkomt met je trainingsdata
 
+    if not os.path.exists(model_path):
+        print(f"❌ Modelbestand '{model_path}' bestaat niet.")
+        sys.exit(1)
+
+    gui = ImageClassifierGUI(model_path, class_names)
+    gui.mainloop()
