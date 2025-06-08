@@ -7,7 +7,8 @@ from PIL import Image
 CLASS_NAMES = None
 
 def load_model(model_path, num_classes):
-    model = models.mobilenet_v2(weights="IMAGENET1K_V1")
+    # Load model without downloading pretrained weights to avoid network access
+    model = models.mobilenet_v2(weights=None)
     model.classifier[1] = torch.nn.Linear(model.last_channel, num_classes)
     model.load_state_dict(torch.load(model_path, map_location="cpu"))
     model.eval()

@@ -1,12 +1,14 @@
 import tkinter as tk
 from tkinter import filedialog, messagebox
 from PIL import Image, ImageTk
+import os
 import torch
 from torchvision import transforms, models
 
 
 def load_model(model_path, num_classes):
-    model = models.mobilenet_v2(weights="IMAGENET1K_V1")
+    # Avoid downloading pretrained weights which requires internet access
+    model = models.mobilenet_v2(weights=None)
     model.classifier[1] = torch.nn.Linear(model.last_channel, num_classes)
     model.load_state_dict(torch.load(model_path, map_location="cpu"))
     model.eval()
@@ -81,9 +83,14 @@ def main():
     )
     args = parser.parse_args()
 
+    if not (os.environ.get("DISPLAY") or os.environ.get("WAYLAND_DISPLAY")):
+        print("Error: No display found. The GUI requires a graphical environment.")
+        return
+
     gui = ImageClassifierGUI(args.model, args.class_names)
     gui.mainloop()
 
 
 if __name__ == "__main__":
     main()
+

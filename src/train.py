@@ -17,7 +17,8 @@ def load_data(data_dir, batch_size):
 
 
 def build_model(num_classes):
-    model = models.mobilenet_v2(weights="IMAGENET1K_V1")
+    # Avoid downloading pretrained weights which requires internet access
+    model = models.mobilenet_v2(weights=None)
     model.classifier[1] = nn.Linear(model.last_channel, num_classes)
     return model
 
