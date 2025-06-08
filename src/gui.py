@@ -42,7 +42,6 @@ class ImageClassifierGUI(tk.Tk):
         self.image_label = tk.Label(self.image_frame, bg="#ffffff")
         self.image_label.pack(padx=10, pady=10)
 
-        # label to show chosen filename
         self.file_var = tk.StringVar()
         self.file_label = tk.Label(
             self.image_frame,
@@ -69,8 +68,10 @@ class ImageClassifierGUI(tk.Tk):
         self.prediction_label.pack(pady=15)
 
         # === Knop om afbeelding te openen ===
-        self.open_button = tk.Button(self, text="📂 Open afbeelding", font=("Helvetica", 13),
-                                     command=self.open_image, bg="#4CAF50", fg="white", padx=10, pady=5)
+        self.open_button = tk.Button(
+            self, text="📂 Open afbeelding", font=("Helvetica", 13),
+            command=self.open_image, bg="#4CAF50", fg="white", padx=10, pady=5
+        )
         self.open_button.pack(pady=15)
 
     def open_image(self):
@@ -107,8 +108,6 @@ class ImageClassifierGUI(tk.Tk):
 
 
 if __name__ == "__main__":
-    # Modelbestand pad relatief aan dit script zodat het werkt ongeacht de huidige
-    # werkdirectory.
     script_dir = Path(__file__).resolve().parent
     model_path = script_dir / "model.pth"
     class_names = ["cat", "dog"]  # Zorg dat dit overeenkomt met je trainingsdata
