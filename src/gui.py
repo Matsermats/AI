@@ -3,6 +3,7 @@ from tkinter import filedialog, messagebox
 from PIL import Image, ImageTk
 import os
 import sys
+from pathlib import Path
 import torch
 from torchvision import transforms, models
 
@@ -73,6 +74,7 @@ class ImageClassifierGUI(tk.Tk):
             self.image_label.configure(image=photo)
             self.image_label.image = photo  # referentie bewaren
             self.file_var.set(os.path.basename(path))
+            print(f"Gekozen afbeelding: {path}")
             self.classify_image(path)
         except Exception as e:
             messagebox.showerror("Fout", f"Afbeelding kan niet geopend worden:\n{e}")
@@ -87,17 +89,21 @@ class ImageClassifierGUI(tk.Tk):
             color = "#4CAF50" if label.lower() == "dog" else "#ff4081"
             self.prediction_label.configure(fg=color)
             self.prediction_var.set(f"🔎 Voorspelling: {label}")
+            print(f"Voorspelling voor {os.path.basename(path)}: {label}")
         except Exception as e:
             messagebox.showerror("Fout", f"Classificatie mislukt:\n{e}")
 
 
 if __name__ == "__main__":
-    model_path = "src/model.pth"
+    # Modelbestand pad relatief aan dit script zodat het werkt ongeacht de huidige
+    # werkdirectory.
+    script_dir = Path(__file__).resolve().parent
+    model_path = script_dir / "model.pth"
     class_names = ["cat", "dog"]  # Zorg dat dit overeenkomt met je trainingsdata
 
-    if not os.path.exists(model_path):
+    if not model_path.exists():
         print(f"❌ Modelbestand '{model_path}' bestaat niet.")
         sys.exit(1)
 
-    gui = ImageClassifierGUI(model_path, class_names)
+    gui = ImageClassifierGUI(str(model_path), class_names)
     gui.mainloop()
