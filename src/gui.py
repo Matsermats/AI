@@ -41,6 +41,12 @@ class ImageClassifierGUI(tk.Tk):
         self.image_label = tk.Label(self.image_frame, bg="#ffffff")
         self.image_label.pack(padx=10, pady=10)
 
+        # label to show chosen filename
+        self.file_var = tk.StringVar()
+        self.file_label = tk.Label(self.image_frame, textvariable=self.file_var,
+                                   bg="#ffffff", font=("Helvetica", 10))
+        self.file_label.pack(pady=(0, 5))
+
         # === Frame voor voorspelling ===
         self.prediction_frame = tk.Frame(self, bg="#f0f0f0", relief="ridge", borderwidth=2)
         self.prediction_frame.pack(pady=10, fill="x", padx=30)
@@ -66,6 +72,7 @@ class ImageClassifierGUI(tk.Tk):
             photo = ImageTk.PhotoImage(img_resized)
             self.image_label.configure(image=photo)
             self.image_label.image = photo  # referentie bewaren
+            self.file_var.set(os.path.basename(path))
             self.classify_image(path)
         except Exception as e:
             messagebox.showerror("Fout", f"Afbeelding kan niet geopend worden:\n{e}")
@@ -77,8 +84,9 @@ class ImageClassifierGUI(tk.Tk):
                 outputs = self.model(image)
                 pred = outputs.argmax(dim=1).item()
             label = self.class_names[pred].capitalize()
+            color = "#4CAF50" if label.lower() == "dog" else "#ff4081"
+            self.prediction_label.configure(fg=color)
             self.prediction_var.set(f"🔎 Voorspelling: {label}")
-            print(f"[DEBUG] Voorspelling: {label}")
         except Exception as e:
             messagebox.showerror("Fout", f"Classificatie mislukt:\n{e}")
 
