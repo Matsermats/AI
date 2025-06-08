@@ -65,9 +65,20 @@ class ImageClassifierGUI(tk.Tk):
 
 def main():
     import argparse
-    parser = argparse.ArgumentParser(description="Launch simple GUI for image classification")
-    parser.add_argument("model", help="Path to trained model")
-    parser.add_argument("class_names", nargs='+', help="List of class names")
+    parser = argparse.ArgumentParser(
+        description="Launch simple GUI for image classification"
+    )
+    parser.add_argument(
+        "--model",
+        default="model.pth",
+        help="Path to trained model (default: model.pth)",
+    )
+    parser.add_argument(
+        "--class-names",
+        nargs="+",
+        default=["dog", "cat", "other"],
+        help="List of class names in order",
+    )
     args = parser.parse_args()
 
     gui = ImageClassifierGUI(args.model, args.class_names)
